@@ -327,6 +327,8 @@ urlpatterns = [
 ```
 ---
 ADDING MORE API ENDPOINTS
+
+```python
 # django_app/urls.py
 
 from django.contrib import admin
@@ -367,6 +369,7 @@ urlpatterns = [
      path('datetime/', get_datetime),  # Now both APIs work!
      path('user/', get_user_info),
 ]
+```
 
 📡 API Endpoints
 Endpoint	   Method	         Description	Example Usage
