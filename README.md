@@ -370,12 +370,13 @@ urlpatterns = [
      path('user/', get_user_info),
 ]
 ```
+##  API Endpoints
 
-📡 API Endpoints
-Endpoint	   Method	         Description	Example Usage
-/hello/	    GET	      Returns a greeting message	/hello/?name=Alice → {"message": "Hello, Alice!"}
-/datetime/	 GET	      Returns the current date and time	/datetime/ → {"current_datetime": "2025-03-11 19:30:00"}
-/user/	    GET	      Returns name and age from query parameters	/user/?name=John&age=25 → {"name": "John", "age": "25"}
+| Endpoint      | Method | Description                                      | Example Usage |
+|--------------|--------|--------------------------------------------------|--------------|
+| `/hello/`    | `GET`  | Returns "Hello, {name}" (Query Param: `name`)   | `/hello/?name=Bob` → `{"message": "Hello, Bob!"}` |
+| `/datetime/` | `GET`  | Returns the current date and time               | `/datetime/` → `{"current_datetime": "2025-03-12 18:30:00"}` |
+| `/user/`     | `GET`  | Accepts `name` and `age` as query parameters and returns them in JSON format | `/user/?name=Alice&age=25` → `{"name": "Alice", "age": "25"}` |
 
 #### 2. Run the Django Server
 
