@@ -326,6 +326,54 @@ urlpatterns = [
 
 ```
 ---
+ADDING MORE API ENDPOINTS
+# django_app/urls.py
+
+from django.contrib import admin
+from django.urls import path
+from django.http import JsonResponse
+
+def hello_name(request):
+    """
+    A simple view that returns 'Hello, {name}' in JSON format.
+    Uses a query parameter named 'name'.
+    """
+    # Get 'name' from the query string, default to 'World' if missing
+    name = request.GET.get("name", "World")
+    return JsonResponse({"message": f"Hello, {name}!"})
+
+from datetime import datetime
+
+def get_datetime(request):
+    """
+    Returns the current date and time in JSON format.
+    """
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    return JsonResponse({"current_datetime": current_time})
+
+def get_user_info(request):
+    """
+    Accepts 'name' and 'age' as query parameters and returns them in JSON format.
+    """
+    name = request.GET.get("name", "Guest")
+    age = request.GET.get("age", "Unknown")
+    return JsonResponse({"name": name, "age": age})
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('hello/', hello_name), 
+    # Example usage: /hello/?name=Bob
+    # returns {"message": "Hello, Bob!"}
+     path('datetime/', get_datetime),  # Now both APIs work!
+     path('user/', get_user_info),
+]
+
+📡 API Endpoints
+Endpoint	   Method	         Description	Example Usage
+/hello/	    GET	      Returns a greeting message	/hello/?name=Alice → {"message": "Hello, Alice!"}
+/datetime/	 GET	      Returns the current date and time	/datetime/ → {"current_datetime": "2025-03-11 19:30:00"}
+/user/	    GET	      Returns name and age from query parameters	/user/?name=John&age=25 → {"name": "John", "age": "25"}
+
 #### 2. Run the Django Server
 
 Activate your virtual environment (if not already active):
