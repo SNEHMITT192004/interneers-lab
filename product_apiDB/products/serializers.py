@@ -1,17 +1,38 @@
-from rest_framework import serializers
-from .models import Product  # Your MongoEngine model
+from rest_framework_mongoengine.serializers import DocumentSerializer
+from .models import Product, ProductCategory
 
-class ProductSerializer(serializers.Serializer):
-    id = serializers.CharField(read_only=True)
-    name = serializers.CharField()
-    description = serializers.CharField()
-    price = serializers.FloatField()
+
+class ProductCategorySerializer(DocumentSerializer):
+    class Meta:
+        model = ProductCategory
+        fields = ['title', 'description']
+
+
+class ProductSerializer(DocumentSerializer):
+    category = ProductCategorySerializer(required=False)
+
+    class Meta:
+        model = Product
+        fields = ['id', 'name', 'description', 'price', 'brand', 'category']
 
     def create(self, validated_data):
-        return Product(**validated_data).save()
+        category_data = validated_data.pop("category", None)
 
-    def update(self, instance, validated_data):
-        for key, value in validated_data.items():
-            setattr(instance, key, value)
-        instance.save()
-        return instance
+        category = None
+        if category_data:
+            category = ProductCategory.objects(title=category_data["title"]).first()
+            if not category:
+                category = ProductCategory(**category_data)
+                category.save()
+
+        product = Product(**validated_data)
+        product.category = category
+        product.save()
+
+        # Optional: update category’s products list
+        if category and product not in category.products:
+            category.products.append(product)
+            category.save()
+
+        return product
+

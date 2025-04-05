@@ -1,9 +1,9 @@
-from products.models import Product
+from products.models import Product, ProductCategory
 
 class ProductService:
     @staticmethod
     def get_all_products():
-        return list(Product.objects.all())  # Convert MongoDB QuerySet to list
+        return list(Product.objects.all())
 
     @staticmethod
     def get_product_by_id(product_id):
@@ -13,8 +13,8 @@ class ProductService:
             return None
 
     @staticmethod
-    def create_product(name, description, price):
-        product = Product(name=name, description=description, price=price)
+    def create_product(name, description, price,brand):
+        product = Product(name=name, description=description, price=price,brand=brand)
         product.save()
         return product
 
@@ -36,3 +36,14 @@ class ProductService:
             product.delete()
             return True
         return False
+
+class ProductCategoryService:
+    @staticmethod
+    def get_all_categories():
+        return ProductCategory.objects.all()
+
+    @staticmethod
+    def create_category(title, description):
+        category = ProductCategory(title=title, description=description)
+        category.save()
+        return category
