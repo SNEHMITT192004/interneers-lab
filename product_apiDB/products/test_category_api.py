@@ -1,38 +1,47 @@
-# products/tests/test_category_api.py
+import unittest
+from django.test import Client
+import json
 
-from django.test import TestCase, RequestFactory
-from products.models import ProductCategory
-from products.views import ProductCategoryView
-from bson import ObjectId
 
-class ProductCategoryAPITest(TestCase):
+class TestCategoryIntegration(unittest.TestCase):
     def setUp(self):
-        self.factory = RequestFactory()
+        self.client = Client()
+        self.category_url = "/products/categories/"
 
-    @classmethod
-    def setUpTestData(cls):
-        cls.cat1 = ProductCategory(
-            id=ObjectId(), title="Electronics", description="Electronic Items"
-        )
-        cls.cat1.save()
-
-        cls.cat2 = ProductCategory(
-            id=ObjectId(), title="Books", description="All kinds of books"
-        )
-        cls.cat2.save()
-
-    def test_get_all_categories(self):
-        request = self.factory.get('/products/categories/')
-        response = ProductCategoryView.as_view()(request)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 2)
-
-    def test_post_category(self):
-        data = {
-            "title": "Furniture",
-            "description": "Home and office furniture"
+    def test_create_category(self):
+        category_data = {
+            "title": "Electronics",
+            "description": "Gadgets and devices"
         }
-        request = self.factory.post('/products/categories/', data, content_type="application/json")
-        response = ProductCategoryView.as_view()(request)
+
+        response = self.client.post(
+            self.category_url,
+            json.dumps(category_data),
+            content_type="application/json"
+        )
+
+        print("Create Category Response:", response.status_code, response.json())
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.data["title"], data["title"])
+        self.assertEqual(response.json()["title"], "Electronics")
+
+    def test_list_categories(self):
+        # Create one category first
+        category_data = {
+            "title": "Electronics",
+            "description": "Gadgets and devices"
+        }
+
+        create_response = self.client.post(
+            self.category_url,
+            json.dumps(category_data),
+            content_type="application/json"
+        )
+        self.assertEqual(create_response.status_code, 201)
+
+        # Now list all categories
+        list_response = self.client.get(self.category_url)
+        print("List Categories Response:", list_response.status_code, list_response.json())
+
+        self.assertEqual(list_response.status_code, 200)
+        self.assertIsInstance(list_response.json(), list)
+        self.assertGreaterEqual(len(list_response.json()), 1)

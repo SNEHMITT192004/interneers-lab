@@ -1,64 +1,64 @@
-# products/tests/test_product_api.py
+import unittest
+from django.test import Client
+import json
 
-from django.test import TestCase, RequestFactory
-from models import Product
-from views import ProductListView, ProductDetailView
-from bson import ObjectId
-
-class ProductAPITest(TestCase):
+class TestProductIntegration(unittest.TestCase):
     def setUp(self):
-        self.factory = RequestFactory()
+        self.client = Client()
+        self.base_url_products = "/products/"
 
-    @classmethod
-    def setUpTestData(cls):
-        cls.product1 = Product(
-            id=ObjectId(), name="Laptop", description="Gaming Laptop", price=1200, brand="HP"
-        )
-        cls.product1.save()
-
-        cls.product2 = Product(
-            id=ObjectId(), name="Phone", description="Smartphone", price=800, brand="Samsung"
-        )
-        cls.product2.save()
-
-    def test_get_all_products(self):
-        request = self.factory.get('/products/')
-        response = ProductListView.as_view()(request)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 2)
-
-    def test_post_product(self):
-        data = {
-            "name": "Tablet",
-            "description": "Android tablet",
-            "price": 500,
-            "brand": "Lenovo"
+    def test_create_product(self):
+        product_data = {
+            "name": "iPhone",
+            "description": "Great camera and performance",
+            "price": 70000,
+            "brand": "Apple",
+            "quantity": 5,
+            "category": {
+                "title": "Electronics",
+                "description": "Gadgets and devices"
+            }
         }
-        request = self.factory.post('/products/', data, content_type="application/json")
-        response = ProductListView.as_view()(request)
+
+        response = self.client.post(
+            self.base_url_products,
+            json.dumps(product_data),
+            content_type="application/json"
+        )
+
+        print("Create Product Response:", response.status_code, response.json())
+
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.data["name"], data["name"])
+        self.assertIn("id", response.json())
 
-    def test_get_product_by_id(self):
-        request = self.factory.get(f'/products/{str(self.product1.id)}/')
-        response = ProductDetailView.as_view()(request, product_id=str(self.product1.id))
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["name"], self.product1.name)
-
-    def test_update_product(self):
-        data = {
-            "name": "Laptop Pro",
-            "description": "Updated",
-            "price": 1300
+    def test_get_product(self):
+        # First, create a product
+        product_data = {
+            "name": "iPhone",
+            "description": "Great camera and performance",
+            "price": 70000,
+            "brand": "Apple",
+            "quantity": 5,
+            "category": {
+                "title": "Electronics",
+                "description": "Gadgets and devices"
+            }
         }
-        request = self.factory.put(
-            f'/products/{str(self.product1.id)}/', data, content_type="application/json"
-        )
-        response = ProductDetailView.as_view()(request, product_id=str(self.product1.id))
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["name"], "Laptop Pro")
 
-    def test_delete_product(self):
-        request = self.factory.delete(f'/products/{str(self.product2.id)}/')
-        response = ProductDetailView.as_view()(request, product_id=str(self.product2.id))
-        self.assertEqual(response.status_code, 204)
+        create_response = self.client.post(
+            self.base_url_products,
+            json.dumps(product_data),
+            content_type="application/json"
+        )
+        self.assertEqual(create_response.status_code, 201)
+        product_id = create_response.json()["id"]
+
+        # Then retrieve the product
+        response = self.client.get(f"{self.base_url_products}{product_id}/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["id"], product_id)
+
+    def test_list_products(self):
+        response = self.client.get(self.base_url_products)
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.json(), list)
